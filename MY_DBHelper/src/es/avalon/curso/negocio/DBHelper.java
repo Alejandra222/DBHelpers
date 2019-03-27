@@ -22,11 +22,11 @@ public class DBHelper {
 		return conexion;
 
 	}
-//
-//	public static Statement crearStatement(Connection conexion) throws SQLException {
-//
-//		return conexion.createStatement();
-//	}
+
+	public static Statement crearStatement(Connection conexion) throws SQLException {
+
+		return conexion.createStatement();
+	}
 
 	
 	public static PreparedStatement crearPreparedStatement(Connection conexion, String sql) throws SQLException {

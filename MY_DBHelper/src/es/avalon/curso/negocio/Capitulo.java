@@ -67,7 +67,7 @@ public class Capitulo {
 			
 			while(st.next()) {
 				
-				Capitulo c = new Capitulo(st.getString("titulo"), st.getInt("paginas"), st.getString("capitulo_libro"));
+				Capitulo c = new Capitulo(st.getString("titulo"), st.getInt("paginas"), st.getString("libro_titulo"));
 				lista.add(c);
 			}
 			
@@ -83,7 +83,7 @@ public class Capitulo {
 	
 	public void insertarCapitulo() {
 		
-		String sql="insert into capitulo(titulo, paginas, capitulo_libro) value(?,?,?)";
+		String sql="insert into capitulo(titulo, paginas, libro_titulo) value(?,?,?)";
 		
 		try(Connection conexion = DBHelper.crearConexion();
 				PreparedStatement sentencia = DBHelper.crearPreparedStatement(conexion, sql)) {
@@ -102,7 +102,7 @@ public class Capitulo {
 	
 	public void deleteCapitulo() {
 		
-		String sql ="Delete from capitulo where titulo=? and capitulo_libro=?";
+		String sql ="Delete from capitulo where titulo=? and libro_titulo=?";
 		
 		try(Connection conexion =DBHelper.crearConexion();
 				PreparedStatement sentencia = DBHelper.crearPreparedStatement(conexion, sql)) {
@@ -118,31 +118,60 @@ public class Capitulo {
 		}
 	}
 	
-	public static Capitulo buscarUnCapituloPorTitulo(String titulo) {
+	public static List<Capitulo> buscarUnCapituloPorTituloYLibro(String titulo, String libro) {
 
-		System.out.println("*****************"+ titulo);
-		Capitulo capitulo = null;
-		String sql = "Select * from capitulo where titulo= ?";
+		System.out.println("buscarUnCapituloPorTituloYLibro le llega"+ titulo+ "  "+libro);
+		List<Capitulo> capitulos = new ArrayList<Capitulo>();
+		String sql = "Select * from capitulo where titulo= ? and libro_titulo= ?";
 
 		try (Connection conexion = DBHelper.crearConexion();
 				PreparedStatement sentencia = DBHelper.crearPreparedStatement(conexion, sql)) {
 
 			sentencia.setString(1, titulo);
+			sentencia.setString(2, libro);
 			ResultSet rs = sentencia.executeQuery();
-			rs.next();
+			
+			while(rs.next()){
 
-			capitulo = new Capitulo(rs.getString("titulo"), rs.getInt("paginas"), rs.getString("capitulo_libro"));
-
+			Capitulo capitulo = new Capitulo(rs.getString("titulo"), rs.getInt("paginas"), rs.getString("libro_titulo"));
+			capitulos.add(capitulo);
+			
+			}
 			System.out.println(rs.getString("titulo") + " encontrado");
 		} catch (Exception e) {
-			System.out.println("Erro buscarUnCapituloPorTitulo " + e);
+			System.out.println("Error buscarUnCapituloPorTituloYLibro " + e);
+		}
+		return capitulos;
+	}
+	
+	public static Capitulo editarUnCapituloPorTituloYLibro(String titulo, String libro) {
+
+		System.out.println("editarUnCapituloPorTituloYLibro le llega"+ titulo+ "  "+libro);
+		Capitulo capitulo = null;
+		String sql = "Select * from capitulo where titulo= ? and libro_titulo= ?";
+
+		try (Connection conexion = DBHelper.crearConexion();
+				PreparedStatement sentencia = DBHelper.crearPreparedStatement(conexion, sql)) {
+
+			sentencia.setString(1, titulo);
+			sentencia.setString(2, libro);
+			ResultSet rs = sentencia.executeQuery();
+			rs.next();	
+
+			 capitulo = new Capitulo(rs.getString("titulo"), rs.getInt("paginas"), rs.getString("libro_titulo"));
+			
+				
+			System.out.println(rs.getString("titulo") + " encontrado");
+		} catch (Exception e) {
+			System.out.println("Error buscarUnCapituloPorTituloYLibro " + e);
 		}
 		return capitulo;
 	}
 	
+	
 	public void updateCapitulo() {
 
-		String sql = "update capitulo set paginas= ?, capitulo_libro= ? where titulo= ?";
+		String sql = "update capitulo set paginas= ?, libro_titulo= ? where titulo= ?";
 		
 		try (Connection conexion = DBHelper.crearConexion();
 				PreparedStatement sentencia = DBHelper.crearPreparedStatement(conexion, sql)) {
@@ -174,7 +203,7 @@ public class Capitulo {
 			ResultSet rs = sentencia.executeQuery();
 			
 			while(rs.next()) {
-			Capitulo c = new Capitulo(rs.getString("titulo"), Integer.parseInt(rs.getString("paginas")), rs.getString("capitulo_libro"));
+			Capitulo c = new Capitulo(rs.getString("titulo"), Integer.parseInt(rs.getString("paginas")), rs.getString("libro_titulo"));
 			lista.add(c);
 			}
 			
@@ -189,7 +218,7 @@ public class Capitulo {
 		System.out.println("listarCapitulosDeLibro le llega: "+libro);
 		List<Capitulo> lista = new ArrayList<Capitulo>();
 		
-		String sql = "Select * from capitulo where capitulo_libro= ?";
+		String sql = "Select * from capitulo where libro_titulo= ?";
 		
 		try(Connection conexion = DBHelper.crearConexion();
 				PreparedStatement sentencia = DBHelper.crearPreparedStatement(conexion, sql)) {
@@ -199,7 +228,7 @@ public class Capitulo {
 			ResultSet rs = sentencia.executeQuery();
 			
 			while(rs.next()) {
-			Capitulo c = new Capitulo(rs.getString("titulo"), Integer.parseInt(rs.getString("paginas")), rs.getString("capitulo_libro"));
+			Capitulo c = new Capitulo(rs.getString("titulo"), Integer.parseInt(rs.getString("paginas")), rs.getString("libro_titulo"));
 			lista.add(c);
 			}
 			
@@ -209,4 +238,41 @@ public class Capitulo {
 		return lista;
 		
 	}
+	
+public static List<Capitulo> filtrarCampoCapitulo(String filtro, String libro){
+		
+		System.out.println(libro+"  filtrarCampoCapitulo recibe: "+filtro);
+		
+		List<Capitulo> lista = new ArrayList<Capitulo>();
+		
+		String sql;
+		if(libro != null || libro.equals("")) {
+			sql = "Select * from capitulo where libro_titulo='"+libro+"' order by "+filtro;
+		}else {
+			
+		 sql = "Select * from capitulo order by "+filtro;
+		}
+		
+		try(Connection conexion = DBHelper.crearConexion();
+				PreparedStatement sentencia = DBHelper.crearPreparedStatement(conexion, sql);
+				ResultSet rs = sentencia.executeQuery(sql)) {
+			
+			while(rs.next()) {
+				String titulo =rs.getString("titulo");
+				int paginas =rs.getInt("paginas");
+				String l =rs.getString("libro_titulo");
+				Capitulo lib = new Capitulo(titulo,paginas,l);
+				lista.add(lib);
+			}
+			
+			System.out.println("filtrarCampoCapitulo Capitulos encontrados: "+lista.size());
+				
+		} catch (Exception e) {
+			System.out.println("Error en filtrarCampoCapitulo "+e);
+		}
+		return lista;
+		
+		
+	}
+
 }
